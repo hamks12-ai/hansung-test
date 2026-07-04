@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한눈생산 - 반도체 생산 관리 시스템</title>
+    <!-- 구글 폰트 (Pretendard 대체용 Inter 및 Noto Sans KR 계열 구글 폰트 로드) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- 상단 파란색 Header -->
+    <header class="mes-header">
+        <div class="header-left">
+            <h1 class="logo-text">한눈생산</h1>
+            <span class="system-tag">MES v1.0</span>
+        </div>
+
+        <!-- 화면 전환 탭 메뉴 -->
+        <nav class="header-nav">
+            <button class="nav-tab active" data-target="dashboard-view">
+                <span class="icon">📊</span> 생산 대시보드
+            </button>
+            <button class="nav-tab" data-target="parser-view">
+                <span class="icon">📝</span> 생산 공지 등록
+            </button>
+        </nav>
+
+        <div class="header-right">
+            <!-- 사용자 프로필 (오른쪽 배치) -->
+            <div class="user-info">
+                <span class="badge-role">Operator</span>
+                <span class="user-name">함균승 대리</span>
+            </div>
+            <!-- 글러브 모드 토글 (MES 현장용 편의기능) -->
+            <button id="btn-glove-mode" class="glove-toggle" title="글러브 터치 모드">
+                🧤 글러브 모드
+            </button>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="mes-container">
+
+        <!-- ① 생산 대시보드 화면 -->
+        <section id="dashboard-view" class="view-section active">
+            <div class="section-title-bar">
+                <h2>생산 대시보드</h2>
+                <p class="section-desc">반도체 라인의 실시간 가동 현황 및 랏(Lot) 작업 리스트를 모니터링합니다.</p>
+            </div>
+
+            <!-- 대시보드 요약 지표 영역 -->
+            <div class="summary-grid">
+                <div class="summary-card urgent">
+                    <div class="card-title">D-day 랏 마감</div>
+                    <div class="card-value">-</div>
+                    <div class="card-footer">가장 가까운 마감 랏 정보</div>
+                </div>
+                <div class="summary-card active-process">
+                    <div class="card-title">공정 진행 중</div>
+                    <div class="card-value">0</div>
+                    <div class="card-footer">진행 상태의 공정 수</div>
+                </div>
+                <div class="summary-card completed">
+                    <div class="card-title">작업 완료 (누적)</div>
+                    <div class="card-value">0</div>
+                    <div class="card-footer">금일 최종 완료 건수</div>
+                </div>
+            </div>
+
+            <!-- 생산 카드 목록 영역 -->
+            <div class="card-list-section">
+                <div class="table-header-bar">
+                    <h3>설비 PM 및 공정 일정 목록 (마감일 순)</h3>
+                    <div class="table-filters">
+                        <button class="filter-chip active" data-filter="all">전체</button>
+                        <button class="filter-chip" data-filter="진행중">진행중</button>
+                        <button class="filter-chip" data-filter="검사대기">검사대기</button>
+                        <button class="filter-chip" data-filter="출하완료">출하완료</button>
+                        <button class="filter-chip review" data-filter="review">⚠️ 검토 필요</button>
+                    </div>
+                </div>
+
+                <!-- 카드가 로드될 컨테이너 -->
+                <div id="task-list" class="task-card-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>현재 등록된 생산 과업이 없습니다.</p>
+                        <span>상단의 '생산 공지 등록' 탭을 선택하여 신규 공지를 등록해 주세요.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ② 생산 공지 등록 화면 -->
+        <section id="parser-view" class="view-section">
+            <div class="section-title-bar">
+                <h2>생산 공지 등록 및 파싱</h2>
+                <p class="section-desc">채널에서 전달받은 원문 공지를 파싱하여 공정 계획에 추가합니다.</p>
+            </div>
+
+            <div class="register-layout">
+                <!-- 왼쪽: 생산 공지 붙여넣기 -->
+                <div class="register-panel input-panel">
+                    <div class="panel-header">
+                        <h3>생산 공지 붙여넣기</h3>
+                        <div class="preset-links">
+                            <span class="preset-label">테스트 양식:</span>
+                            <button type="button" class="preset-link-btn" id="btn-preset-1">정상 일정</button>
+                            <button type="button" class="preset-link-btn" id="btn-preset-2">검토 필요</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <textarea id="notice-input" class="mes-textarea"
+                            placeholder="공지 메시지 원문을 이곳에 붙여넣어 주세요..."></textarea>
+                        <button type="button" id="btn-run-parse" class="mes-btn primary-btn">
+                            정보 추출
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 오른쪽: 확인 및 입력 폼 -->
+                <div class="register-panel check-panel">
+                    <div class="panel-header">
+                        <h3>원문과 비교하여 확인 및 저장</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form id="draft-edit-form" class="mes-form" onsubmit="return false;">
+                            <div class="form-row">
+                                <div class="form-item">
+                                    <label for="input-lot-id">Lot 번호 <span class="required">*</span></label>
+                                    <input type="text" id="input-lot-id" placeholder="예: FAB-A, Lot 4032">
+                                </div>
+                                <div class="form-item">
+                                    <label for="input-process-name">공정명 <span class="required">*</span></label>
+                                    <input type="text" id="input-process-name" placeholder="예: 5나노 PMIC 공정">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-item">
+                                    <label for="input-due-at">마감일 <span class="required">*</span></label>
+                                    <input type="datetime-local" id="input-due-at">
+                                </div>
+                                <div class="form-item">
+                                    <label for="input-quantity">생산수량 <span class="required">*</span></label>
+                                    <input type="text" id="input-quantity" placeholder="예: 랏 단위 3개">
+                                </div>
+                            </div>
+
+                            <div class="form-item">
+                                <label for="input-detail">비고</label>
+                                <textarea id="input-detail" class="mes-textarea-small"
+                                    placeholder="기타 조치 및 정비 특이사항 입력..."></textarea>
+                            </div>
+
+                            <!-- 파싱 검토 필요 상태일 때 표시되는 알림 배너 -->
+                            <div id="parse-alert" class="parse-alert-banner hidden">
+                                <span class="alert-icon">⚠️</span>
+                                <div class="alert-content">
+                                    <strong>검토 필요 (needsReview):</strong>
+                                    <span>추출된 마감일이 명확하지 않거나 대조 결과에 오류 가능성이 있습니다. 입력 정보를 재확인해 주세요.</span>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" id="btn-draft-cancel" class="mes-btn border-btn">취소</button>
+                                <button type="button" id="btn-draft-save" class="mes-btn success-btn">확인 후 지정</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 공정 상세 보기 모달 -->
+    <div id="task-detail-modal" class="mes-modal-backdrop">
+        <div class="mes-modal">
+            <div class="modal-header">
+                <h3>공정 상세 내역 및 편집</h3>
+                <button type="button" class="modal-close-btn" id="btn-close-detail-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="modal-edit-form" class="mes-form" onsubmit="return false;">
+                    <!-- 모달 양식 구성 요소가 로드될 영역 -->
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOTO 잠금 확인 모달 -->
+    <div id="loto-confirm-modal" class="mes-modal-backdrop">
+        <div class="mes-modal alert-modal">
+            <div class="modal-header alert-header">
+                <h3>⚠️ LOTO (Lockout-Tagout) 안전 확인</h3>
+            </div>
+            <div class="modal-body">
+                <p>설비 정비 완료 상태로 전환하기 전 LOTO 수칙을 확인합니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
